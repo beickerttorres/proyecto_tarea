@@ -5,7 +5,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-default-key')
 DEBUG = config('DEBUG', default=False, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,.vercel.app', cast=Csv())
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.vercel.app",
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -47,10 +50,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'tarea_proyecto.wsgi.application'
 
-import dj_database_url
 db_url = config('DATABASE_URL', default='sqlite:///db.sqlite3')
+import dj_database_url
+# Leer URL de la base de datos desde el entorno. Por defecto usar sqlite local.
+db_url = config('DATABASE_URL', default=f'sqlite:///{BASE_DIR / "db.sqlite3"}')
+
+# Tiempo de vida de conexiones persistentes (recomendado > 0 en producción)
+CONN_MAX_AGE = config('CONN_MAX_AGE', default=600, cast=int)
+# Forzar SSL para bases administradas (Neon ya requiere sslmode=require en la URL)
+DB_SSL = config('DB_SSL', default=True, cast=bool)
+
 DATABASES = {
-    'default': dj_database_url.config(default=db_url, conn_max_age=0, ssl_require=True)
+    'default': dj_database_url.config(default=db_url, conn_max_age=CONN_MAX_AGE, ssl_require=DB_SSL)
 }
 
 AUTH_PASSWORD_VALIDATORS = [
