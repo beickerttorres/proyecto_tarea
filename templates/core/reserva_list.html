@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Reservas{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-calendar-check"></i> Reservas</h2>
+    <a href="{% url 'reserva_create' %}" class="btn btn-success"><i class="bi bi-plus-lg"></i> Nueva Reserva</a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label class="form-label small">Espacio</label>
+                <select name="espacio" class="form-select form-select-sm">
+                    <option value="">Todos</option>
+                    {% for e in espacios_filtro %}
+                    <option value="{{ e.id }}" {% if request.GET.espacio == e.id|stringformat:'s' %}selected{% endif %}>{{ e.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <label class="form-label small">Estado</label>
+                <select name="estado" class="form-select form-select-sm">
+                    <option value="">Todos</option>
+                    <option value="pendiente" {% if request.GET.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                    <option value="confirmada" {% if request.GET.estado == 'confirmada' %}selected{% endif %}>Confirmada</option>
+                    <option value="completada" {% if request.GET.estado == 'completada' %}selected{% endif %}>Completada</option>
+                    <option value="cancelada" {% if request.GET.estado == 'cancelada' %}selected{% endif %}>Cancelada</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-funnel"></i> Filtrar</button>
+                <a href="{% url 'reserva_list' %}" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if reserva_list %}
+<div class="table-responsive">
+    <table class="table table-dark table-hover align-middle">
+        <thead>
+            <tr>
+                {% if user.es_admin %}<th>Usuario</th>{% endif %}
+                <th>Espacio</th>
+                <th>Inicio</th>
+                <th>Fin</th>
+                <th>Estado</th>
+                <th class="text-end">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in reserva_list %}
+            <tr>
+                {% if user.es_admin %}<td>{{ r.usuario.username }}</td>{% endif %}
+                <td><span class="badge bg-secondary">{{ r.espacio.nombre }}</span></td>
+                <td class="small">{{ r.fecha_inicio|date:"d/m/Y H:i" }}</td>
+                <td class="small">{{ r.fecha_fin|date:"d/m/Y H:i" }}</td>
+                <td>
+                    <span class="badge {% if r.estado == 'pendiente' %}bg-warning{% elif r.estado == 'confirmada' %}bg-primary{% elif r.estado == 'completada' %}bg-success{% else %}bg-secondary{% endif %} badge-estado">
+                        {{ r.get_estado_display }}
+                    </span>
+                </td>
+                <td class="text-end">
+                    {% if r.estado != 'cancelada' %}
+                    <a href="{% url 'reserva_update' r.pk %}" class="btn btn-outline-warning btn-sm" title="Editar"><i class="bi bi-pencil"></i></a>
+                    <a href="{% url 'reserva_cancel' r.pk %}" class="btn btn-outline-danger btn-sm" title="Cancelar"><i class="bi bi-x-circle"></i></a>
+                    {% endif %}
+                    <a href="{% url 'reserva_delete' r.pk %}" class="btn btn-outline-danger btn-sm" title="Eliminar"><i class="bi bi-trash"></i></a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">No hay reservas registradas.</div>
+{% endif %}
+{% endblock %}

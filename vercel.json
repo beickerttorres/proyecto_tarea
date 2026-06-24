@@ -1,0 +1,9 @@
+{
+    "buildCommand": "python3 -m pip install -r requirements.txt && python3 manage.py collectstatic --noinput",
+    "outputDirectory": "staticfiles",
+    "devCommand": "python3 manage.py runserver",
+    "routes": [
+        { "src": "/static/(.*)", "dest": "/staticfiles/$1" },
+        { "src": "/.*", "dest": "api/index.py" }
+    ]
+}
